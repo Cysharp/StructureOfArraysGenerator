@@ -316,11 +316,13 @@ partial struct {{targetTypeName}} : global::StructureOfArraysGenerator.IMultiArr
     {
         if (length < 0) ThrowOutOfRangeException();
 
-        this.__byteOffsetX = arrayOffset.Offset;
+        this.__byteOffset{{members[0].Name}} = arrayOffset.Offset;
 {{ForLine("        ", 1, members.Length, x => $"this.__byteOffset{members[x].Name} = __byteOffset{members[x - 1].Name} + (Unsafe.SizeOf<{members[x - 1].MemberTypeFullName}>() * length);")}}
-        this.__byteSize = __byteOffset{{members[members.Length - 1].Name}} + (Unsafe.SizeOf<{{members[members.Length - 1].MemberTypeFullName}}>() * length);
+        this.__byteSize = __byteOffset{{members[members.Length - 1].Name}} + (Unsafe.SizeOf<{{members[members.Length - 1].MemberTypeFullName}}>() * length) - __byteOffset{{members[0].Name}};
         this.__value = arrayOffset.Array!;
         this.__length = length;
+
+        if (arrayOffset.Count < this.__byteSize) ThrowOutOfRangeException();
     }
 
     public {{elementTypeFullName}} this[int index]
@@ -341,7 +343,7 @@ partial struct {{targetTypeName}} : global::StructureOfArraysGenerator.IMultiArr
         }
     }
 
-    public ReadOnlySpan<byte> GetRawSpan() => __value.AsSpan(__byteOffsetX, __byteSize);
+    public ReadOnlySpan<byte> GetRawSpan() => __value.AsSpan(__byteOffset{{members[0].Name}}, __byteSize);
 
     public bool SequenceEqual({{targetTypeName}} other)
     {
@@ -401,7 +403,7 @@ partial struct {{targetTypeName}} : global::StructureOfArraysGenerator.IMultiArr
         var elementTypeFullName = elementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
         var code = $$"""
-{{multiArrayType.DeclaredAccessibility.ToCode()}} partial sealed class {{targetTypeName}}
+{{multiArrayType.DeclaredAccessibility.ToCode()}} sealed partial class {{targetTypeName}}
 {
     const int DefaultCapacity = 4;
 
@@ -453,7 +455,7 @@ partial struct {{targetTypeName}} : global::StructureOfArraysGenerator.IMultiArr
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private void AddWithResize(Point3D item)
+    private void AddWithResize({{elementTypeFullName}} item)
     {
         var size = __length;
         EnsureCapacity(size + 1);
@@ -489,7 +491,7 @@ partial struct {{targetTypeName}} : global::StructureOfArraysGenerator.IMultiArr
         return new Enumerator(this);
     }
 
-    public IEnumerable<{{elementTypeFullName}}> AsEnumerable()
+    public System.Collections.Generic.IEnumerable<{{elementTypeFullName}}> AsEnumerable()
     {
         foreach (var item in this)
         {
