@@ -1,4 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Text;
 using static StructureOfArraysGenerator.EmitHelper;
 
@@ -92,16 +94,16 @@ namespace StructureOfArraysGenerator
         var attr = source.Attributes[0]; // allowMultiple:false
         var members = GetMultiArrayMembers(attr, out var elementType);
 
-        // TODO: choose constructor
+        var constructor = GetElementConstructorInfo(members, elementType);
 
         // Verify target
-        if (!VerifyMultiArray(source.TargetSymbol, elementType, members))
+        if (!VerifyMultiArray(context, (TypeDeclarationSyntax)source.TargetNode, source.TargetSymbol, elementType, members))
         {
             return;
         }
 
         // Generate Code
-        var code = BuildMultiArray(source.TargetSymbol, elementType, members);
+        var code = BuildMultiArray(source.TargetSymbol, elementType, constructor, members);
 
         AddSource(context, source.TargetSymbol, code);
     }
@@ -113,7 +115,7 @@ namespace StructureOfArraysGenerator
 
         if (multiArrayAttr == null)
         {
-            // TODO: Verify
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultiArrayIsNotExists, ((TypeDeclarationSyntax)source.TargetNode).Identifier.GetLocation(), source.TargetSymbol.Name));
             return;
         }
 
@@ -193,23 +195,84 @@ namespace StructureOfArraysGenerator
         return members;
     }
 
-    static bool VerifyMultiArray(ISymbol targetType, INamedTypeSymbol elementType, MetaMember[] members)
+    static IMethodSymbol? GetElementConstructorInfo(MetaMember[] members, INamedTypeSymbol elementType)
     {
+        IMethodSymbol? constructor = null;
+        if (elementType.Constructors.Length != 0)
+        {
+            var nameDict = new HashSet<string>(members.Select(x => x.Name), StringComparer.OrdinalIgnoreCase);
+
+            var maxMatchCount = 0;
+            foreach (var ctor in elementType.Constructors)
+            {
+                var matchCount = 0;
+                foreach (var p in ctor.Parameters)
+                {
+                    if (nameDict.Contains(p.Name))
+                    {
+                        matchCount++;
+                    }
+                    else
+                    {
+                        matchCount = -1;
+                        break;
+                    }
+                }
+
+                if (matchCount > maxMatchCount)
+                {
+                    constructor = ctor; // use this.
+                    maxMatchCount = matchCount;
+                }
+            }
+        }
+
+        return constructor;
+    }
+
+    static bool VerifyMultiArray(SourceProductionContext context, TypeDeclarationSyntax typeSyntax, ISymbol targetType, INamedTypeSymbol elementType, MetaMember[] members)
+    {
+        var hasError = false;
+
+        // require partial
+        if (!typeSyntax.Modifiers.Any(m => m.IsKind(SyntaxKind.PartialKeyword)))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MustBePartial, typeSyntax.Identifier.GetLocation(), targetType.Name));
+            hasError = true;
+        }
+
+        // require readonly
+        if (!typeSyntax.Modifiers.Any(m => m.IsKind(SyntaxKind.ReadOnlyKeyword)))
+        {
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MustBeReadOnly, typeSyntax.Identifier.GetLocation(), targetType.Name));
+            hasError = true;
+        }
+
+        // element is not struct
+        if (!elementType.IsValueType)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ElementIsNotValueType, typeSyntax.Identifier.GetLocation(), targetType.Name, elementType.Name));
+            hasError = true;
+        }
+
+        // empty member is not allowed
+        if (members.Length == 0)
+        {
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MemberEmpty, typeSyntax.Identifier.GetLocation(), targetType.Name, elementType.Name));
+            hasError = true;
+        }
+
         // All target members should be unamanged
         if (!members.All(x => x.MemberType.IsUnmanagedType))
         {
-            // TODO: dianogstics error.
-            return false;
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MemberUnmanaged, typeSyntax.Identifier.GetLocation(), targetType.Name, elementType.Name));
+            hasError = true;
         }
 
-        // TODO: empty struct
-        // TODO: partial
-        // TODO: readonly
-
-        return true;
+        return !hasError;
     }
 
-    static string BuildMultiArray(ISymbol targetType, INamedTypeSymbol elementType, MetaMember[] members)
+    static string BuildMultiArray(ISymbol targetType, INamedTypeSymbol elementType, IMethodSymbol? elementConstructor, MetaMember[] members)
     {
         var targetTypeName = targetType.Name;
         var elementTypeFullName = elementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -266,9 +329,9 @@ partial struct {{targetTypeName}} : global::StructureOfArraysGenerator.IMultiArr
         {
             if ((uint)index >= (uint)__length) ThrowOutOfRangeException();
 {{ForEachLine("            ", members, x => $"ref var __{x.Name} = ref Unsafe.Add(ref Unsafe.As<byte, {x.MemberTypeFullName}>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(__value), __byteOffset{x.Name})), index);")}}
-            return new {{elementTypeFullName}}
+            return {{BuildElementNew(elementType, elementConstructor, members)}}
             {
-{{ForEachLine("                ", members, x => $"{x.Name} = __{x.Name},")}}
+{{ForEachLine("                ", members.Where(x => !x.IsConstructorParameter), x => $"{x.Name} = __{x.Name},")}}
             };
         }
         set
@@ -285,9 +348,46 @@ partial struct {{targetTypeName}} : global::StructureOfArraysGenerator.IMultiArr
         return GetRawSpan().SequenceEqual(other.GetRawSpan());
     }
 
+    public Enumerator GetEnumerator()
+    {
+        return new Enumerator(this);
+    }
+
+    public System.Collections.Generic.IEnumerable<{{elementTypeFullName}}> AsEnumerable()
+    {
+        foreach (var item in this)
+        {
+            yield return item;
+        }
+    }
+
     static void ThrowOutOfRangeException()
     {
         throw new ArgumentOutOfRangeException();
+    }
+
+    public struct Enumerator
+    {
+        {{targetTypeName}} array;
+        {{elementTypeFullName}} current;
+        int index;
+
+        public Enumerator({{targetTypeName}} array)
+        {
+            this.array = array;
+            this.current = default;
+            this.index = 0;
+        }
+
+        public {{elementTypeFullName}} Current => current;
+
+        public bool MoveNext()
+        {
+            if (index >= array.Length) return false;
+            current = array[index];
+            index++;
+            return true;
+        }
     }
 }
 """;
@@ -301,7 +401,7 @@ partial struct {{targetTypeName}} : global::StructureOfArraysGenerator.IMultiArr
         var elementTypeFullName = elementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
         var code = $$"""
-partial class {{targetTypeName}}
+{{multiArrayType.DeclaredAccessibility.ToCode()}} partial sealed class {{targetTypeName}}
 {
     const int DefaultCapacity = 4;
 
@@ -384,14 +484,78 @@ partial class {{targetTypeName}}
         return newArray;
     }
 
+    public Enumerator GetEnumerator()
+    {
+        return new Enumerator(this);
+    }
+
+    public IEnumerable<{{elementTypeFullName}}> AsEnumerable()
+    {
+        foreach (var item in this)
+        {
+            yield return item;
+        }
+    }
+
     static void ThrowOutOfRangeIndex()
     {
         throw new ArgumentOutOfRangeException();
+    }
+
+    public struct Enumerator
+    {
+        {{targetTypeName}} list;
+        {{elementTypeFullName}} current;
+        int index;
+
+        public Enumerator({{targetTypeName}} list)
+        {
+            this.list = list;
+            this.current = default;
+            this.index = 0;
+        }
+
+        public {{elementTypeFullName}} Current => current;
+
+        public bool MoveNext()
+        {
+            if (index >= list.Length) return false;
+            current = list[index];
+            index++;
+            return true;
+        }
     }
 }
 """;
 
         return code;
+    }
+
+    static string BuildElementNew(INamedTypeSymbol elementType, IMethodSymbol? constructor, MetaMember[] members)
+    {
+        var elementTypeFullName = elementType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+
+        if (constructor == null || constructor.Parameters.Length == 0)
+        {
+            return $"new {elementTypeFullName}()";
+        }
+        else
+        {
+            var nameDict = members.ToDictionary(x => x.Name, x => x, StringComparer.OrdinalIgnoreCase);
+            var parameters = constructor.Parameters
+                .Select(x =>
+                {
+                    if (nameDict.TryGetValue(x.Name, out var member))
+                    {
+                        member.IsConstructorParameter = true;
+                        return $"__{member.Name}";
+                    }
+                    return null; // invalid, validated.
+                })
+                .Where(x => x != null);
+
+            return $"new {elementTypeFullName}({string.Join(", ", parameters)})";
+        }
     }
 
     static void AddSource(SourceProductionContext context, ISymbol targetSymbol, string code, string fileExtension = ".g.cs")
@@ -403,7 +567,7 @@ partial class {{targetTypeName}}
 
         var sb = new StringBuilder();
 
-        sb.AppendLine(@"
+        sb.AppendLine("""
 // <auto-generated/>
 #nullable enable
 #pragma warning disable CS0108
@@ -424,7 +588,7 @@ partial class {{targetTypeName}}
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-");
+""");
 
         var ns = targetSymbol.ContainingNamespace;
         if (!ns.IsGlobalNamespace)

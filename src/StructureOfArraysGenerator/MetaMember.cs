@@ -5,9 +5,12 @@ namespace StructureOfArraysGenerator;
 public class MetaMember
 {
     public ITypeSymbol MemberType { get; }
-    public string MemberTypeFullName { get; set; }
+    public string MemberTypeFullName { get; }
     public string Name { get; }
     public bool IsField { get; }
+
+    // set when emit constructor.
+    public bool IsConstructorParameter { get; set; }
 
     public MetaMember(ISymbol symbol)
     {
