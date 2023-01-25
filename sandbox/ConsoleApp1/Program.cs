@@ -1,5 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System.Buffers;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -10,18 +12,25 @@ using StructureOfArraysGenerator;
 
 
 
-var array = new Point3DMultiArray(10);
-
-array[3] = new Point3D { X = 99, Y = 100, Z = 9999 };
+MemoryPackFormatterProvider.Register(new MultiArrayFormatter<Point3DMultiArray>());
 
 
 
-var array2 = new Point3D[10];
-//MemoryExtensions.
-array.X[4] = 9999;
+var list = new Point3DMultiArrayList();
+
+list.Add(new Point3D { X = 10, Y = 20, Z = 30 });
+list.Add(new Point3D { X = 11, Y = 21, Z = 31 });
+list.Add(new Point3D { X = 12, Y = 22, Z = 32 });
+list.Add(new Point3D { X = 13, Y = 23, Z = 33 });
+list.Add(new Point3D { X = 15, Y = 25, Z = 35 });
 
 
-Console.WriteLine("foo");
+Console.WriteLine(list.Length);
+
+
+
+
+
 
 
 public struct Point3D
@@ -31,68 +40,10 @@ public struct Point3D
     public float Z;
 }
 
-[MultiArray(typeof(Point3D))]
-[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Auto)]
+[MultiArray(typeof(Point3D), nameof(Point3D.X), nameof(Point3D.Y)), MultiArrayList]
 public readonly partial struct Point3DMultiArray
 {
     // TODO: check index of indexer
-}
-
-
-public class Point3DMultiArrayList
-{
-    Point3DMultiArray array;
-    int length;
-
-    public int Length => length;
-    public Span<float> X => array.X.Slice(0, length);
-    public Span<float> Y => array.Y.Slice(0, length);
-    public Span<float> Z => array.Z.Slice(0, length);
-
-    public Point3DMultiArrayList()
-        : this(4)
-    {
-    }
-
-    public Point3DMultiArrayList(int capacity)
-    {
-        if (capacity < 0) capacity = 1;
-        array = new Point3DMultiArray(capacity);
-    }
-
-    public Point3D this[int index]
-    {
-        get
-        {
-            // TODO: check index of indexer
-            return array[index];
-        }
-        set
-        {
-            array[index] = value;
-        }
-    }
-
-    public void Add(Point3D value)
-    {
-        // TODO: EnsureCapacity
-        array[length++] = value;
-    }
-
-    void EnsureCapacity(int newLength)
-    {
-        var newArray = new Point3DMultiArray(array.Length * 2);
-        array.X.CopyTo(newArray.X);
-        array.Y.CopyTo(newArray.Y);
-        array.Z.CopyTo(newArray.Z);
-    }
-
-    //public ReadOnlySpan<byte> GetRawSpan() => __value.AsSpan(__byteOffsetX, __byteSize);
-
-    //public bool SequenceEqual(Point3DMultiArray other)
-    //{
-    //    return GetRawSpan().SequenceEqual(other.GetRawSpan());
-    //}
 }
 
 
@@ -115,24 +66,3 @@ internal sealed class MultiArrayFormatter<T> : MemoryPackFormatter<T>
         value = T.Create(length, array!);
     }
 }
-
-
-
-
-
-
-
-[AttributeUsage(AttributeTargets.Struct, AllowMultiple = false, Inherited = false)]
-internal sealed class MultiArrayAttribute2 : Attribute
-{
-    public Type Type { get; }
-
-    public MultiArrayAttribute2(Type type, bool includeProperty = false)
-    {
-        this.Type = type;
-    }
-}
-
-// TODO: constructor selection?
-// MemoryPack serialization
-
