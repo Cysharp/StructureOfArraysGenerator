@@ -71,6 +71,13 @@ public readonly partial struct Point3DMultiArray
 
 
 
+[MultiArray(typeof(Vector3))]
+public readonly partial struct Vector3MultiArray
+{
+}
+
+
+
 
 
 [MultiArray(typeof(System.Numerics.Vector4))]

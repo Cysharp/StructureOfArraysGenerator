@@ -3,15 +3,18 @@
 
 Structure of arrays source generator to make CPU Cache and SIMD friendly data structure for high-performance code in .NET and Unity.
 
-// TODO: image
+![image](https://user-images.githubusercontent.com/46207/214814782-fd341e09-731a-4e2f-ba53-ef789a19160e.png)
 
-// write gaiyou.
+As described in Wikipedia [AoS and SoA](https://en.wikipedia.org/wiki/AoS_and_SoA), standard C# array is **array of structures(AoS)**, however the **structure of arrays(SoA)** is suitable for utilizing the CPU cache, which is faster than the main memory, and for ultra-fast parallel processing by SIMD. StructureOfArraysGenerator is inspired by [Zig language](https://ziglang.org/)'s `MultiArrayList`. See the great session [A Practical Guide to Applying Data-Oriented Design](https://vimeo.com/649009599) that talked by Andrew Kelley who is the Zig language author.
+
+StructureOfArraysGenerator actually generates not arrays, just a struct with a single `byte[]` field and `int` offsets of each fields to provide `Span<T>` view, it minimizes memory and heap usage in C#. Source Generator generates `Span<T>` property corresponding to each struct members so SoA structure can be realized with the same ease of use as a regular `T[]`.
+
 
 Installation
 ---
 This library is distributed via NuGet.
 
-> PM> Install-Package [MemoryPack](https://www.nuget.org/packages/StructureOfArraysGenerator)
+> PM> Install-Package [StructureOfArraysGenerator](https://www.nuget.org/packages/StructureOfArraysGenerator)
 
 And also a code editor requires Roslyn 4.3.1 support, for example Visual Studio 2022 version 17.3, .NET SDK 6.0.401. For details, see the [Roslyn Version Support](https://learn.microsoft.com/en-us/visualstudio/extensibility/roslyn-version-support) document.
 
@@ -22,13 +25,26 @@ Quick Start
 
 // write iroiro.
 
+
+
+MultiArray
+---
+
+
+use `in`
+
+serialization
+
+MultiArrayList
+---
+
 Unity
 ---
 Install via UPM git URL package or asset package (StructureOfArraysGenerator.*.*.*.unitypackage) available in [StructureOfArraysGenerator/releases](https://github.com/Cysharp/StructureOfArraysGenerator/releases) page.
 
 * https://github.com/Cysharp/StructureOfArraysGenerator.git?path=src/StructureOfArraysGenerator.Unity/Assets/Plugins/StructureOfArraysGenerator
 
-If you want to set a target version, MemoryPack uses the `*.*.*` release tag, so you can specify a version like #1.0.0. For example `https://github.com/Cysharp/StructureOfArraysGenerator.git?path=src/StructureOfArraysGenerator.Unity/Assets/Plugins/MemoryPack#1.0.0`.
+If you want to set a target version, StructureOfArraysGenerator uses the `*.*.*` release tag, so you can specify a version like #1.0.0. For example `https://github.com/Cysharp/StructureOfArraysGenerator.git?path=src/StructureOfArraysGenerator.Unity/Assets/Plugins/StructureOfArraysGenerator#1.0.0`.
 
 Minimum supported Unity version is `2021.3`. The dependency managed DLL `System.Runtime.CompilerServices.Unsafe/6.0.0` is included with unitypackage. For git references, you will need to add them in another way as they are not included to avoid unnecessary dependencies; either extract the dll from unitypackage or download it from the [NuGet page](https://www.nuget.org/packages/System.Runtime.CompilerServices.Unsafe/6.0.0).
 
