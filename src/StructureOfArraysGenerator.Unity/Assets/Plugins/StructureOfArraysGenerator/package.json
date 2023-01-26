@@ -2,7 +2,7 @@
     "name": "com.cysharp.soagenerator",
     "displayName": "Structure of Arrays Generator",
     "author": { "name": "Cysharp, Inc.", "url": "https://cysharp.co.jp/en/" },
-    "version": "1.0.0",
+    "version": "0.0.1",
     "unity": "2021.3",
     "description": "Structure of Arrays Source Generator.",
     "keywords": [ "DataStructure" ],
