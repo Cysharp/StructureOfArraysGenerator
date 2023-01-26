@@ -248,10 +248,10 @@ namespace StructureOfArraysGenerator
             hasError = true;
         }
 
-        // element is not struct
-        if (!elementType.IsValueType)
+        // element is not unamanged
+        if (!elementType.IsUnmanagedType)
         {
-            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ElementIsNotValueType, typeSyntax.Identifier.GetLocation(), targetType.Name, elementType.Name));
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ElementIsNotUnmanagedType, typeSyntax.Identifier.GetLocation(), targetType.Name, elementType.Name));
             hasError = true;
         }
 
