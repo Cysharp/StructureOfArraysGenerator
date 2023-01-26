@@ -9,6 +9,8 @@ namespace StructureOfArraysGenerator;
 [Generator(LanguageNames.CSharp)]
 public partial class Generator : IIncrementalGenerator
 {
+#if !ROSLYN3
+
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         context.RegisterPostInitializationOutput(EmitAttributes);
@@ -30,6 +32,8 @@ public partial class Generator : IIncrementalGenerator
             context.RegisterSourceOutput(source, EmitMultiArrayList);
         }
     }
+
+#endif
 
     static void EmitAttributes(IncrementalGeneratorPostInitializationContext context)
     {
