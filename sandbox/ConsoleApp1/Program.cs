@@ -28,6 +28,8 @@ using StructureOfArraysGenerator;
 new Point3DMultiArray(8);
 
 
+
+
 //Console.WriteLine(list.Length);
 
 
@@ -68,4 +70,12 @@ public readonly partial struct Point3DMultiArray
 
 
 
+
+
+
+[MultiArray(typeof(System.Numerics.Vector4))]
+public readonly partial struct Vector4MultiArray
+{
+
+}
 

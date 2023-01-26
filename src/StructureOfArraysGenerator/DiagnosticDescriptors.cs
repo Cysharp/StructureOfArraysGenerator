@@ -22,10 +22,10 @@ public static class DiagnosticDescriptors
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
-    public static readonly DiagnosticDescriptor ElementIsNotUnmanagedType = new(
+    public static readonly DiagnosticDescriptor ElementIsNotValueType = new(
         id: "SOA003",
-        title: "MultiArray struct element type only allows unmanaged type",
-        messageFormat: "The MultiArray struct '{0}' element '{1}' only allows unmanaged type",
+        title: "MultiArray struct element type only allows value type",
+        messageFormat: "The MultiArray struct '{0}' element '{1}' only allows value type",
         category: Category,
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);

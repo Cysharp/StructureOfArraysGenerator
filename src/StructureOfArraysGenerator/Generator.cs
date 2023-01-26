@@ -18,7 +18,7 @@ public partial class Generator : IIncrementalGenerator
         {
             var source = context.SyntaxProvider.ForAttributeWithMetadataName(
                      "StructureOfArraysGenerator.MultiArrayAttribute",
-                     static (node, token) => true,
+                     static (node, token) => node is StructDeclarationSyntax,
                      static (context, token) => context);
 
             context.RegisterSourceOutput(source, EmitMultiArray);
@@ -26,7 +26,7 @@ public partial class Generator : IIncrementalGenerator
         {
             var source = context.SyntaxProvider.ForAttributeWithMetadataName(
                      "StructureOfArraysGenerator.MultiArrayListAttribute",
-                     static (node, token) => true,
+                     static (node, token) => node is StructDeclarationSyntax,
                      static (context, token) => context);
 
             context.RegisterSourceOutput(source, EmitMultiArrayList);
@@ -173,6 +173,8 @@ namespace StructureOfArraysGenerator
         var members = elementType.GetMembers()
             .Where(x =>
             {
+                if (x.IsStatic) return false;
+
                 if (!(x.DeclaredAccessibility is Accessibility.Public or Accessibility.Internal))
                 {
                     return false;
@@ -252,10 +254,10 @@ namespace StructureOfArraysGenerator
             hasError = true;
         }
 
-        // element is not unamanged
-        if (!elementType.IsUnmanagedType)
+        // element is not valuetype
+        if (!elementType.IsValueType)
         {
-            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ElementIsNotUnmanagedType, typeSyntax.Identifier.GetLocation(), targetType.Name, elementType.Name));
+            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ElementIsNotValueType, typeSyntax.Identifier.GetLocation(), targetType.Name, elementType.Name));
             hasError = true;
         }
 
@@ -266,7 +268,7 @@ namespace StructureOfArraysGenerator
             hasError = true;
         }
 
-        // All target members should be unamanged
+        // All target members should be unmanaged
         if (!members.All(x => x.MemberType.IsUnmanagedType))
         {
             context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MemberUnmanaged, typeSyntax.Identifier.GetLocation(), targetType.Name, elementType.Name));
@@ -291,7 +293,7 @@ partial struct {{targetTypeName}} : global::StructureOfArraysGenerator.IMultiArr
 {{ForEachLine("    ", members, x => $"readonly int __byteOffset{x.Name};")}}
 
     public int Length => __length;
-{{ForEachLine("    ", members, x => $"public Span<{x.MemberTypeFullName}> {x.Name} => MemoryMarshal.CreateSpan(ref Unsafe.As<byte, {x.MemberTypeFullName}>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(__value), __byteOffset{x.Name})), __length);")}}
+{{ForEachLine("    ", members, x => $"public Span<{x.MemberTypeFullName}> {x.Name} => MemoryMarshal.CreateSpan(ref Unsafe.As<byte, {x.MemberTypeFullName}>(ref Unsafe.Add(ref GetArrayDataReference(__value), __byteOffset{x.Name})), __length);")}}
 
     public static int GetByteSize(int length)
     {
@@ -334,7 +336,7 @@ partial struct {{targetTypeName}} : global::StructureOfArraysGenerator.IMultiArr
         get
         {
             if ((uint)index >= (uint)__length) ThrowOutOfRangeException();
-{{ForEachLine("            ", members, x => $"ref var __{x.Name} = ref Unsafe.Add(ref Unsafe.As<byte, {x.MemberTypeFullName}>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(__value), __byteOffset{x.Name})), index);")}}
+{{ForEachLine("            ", members, x => $"ref var __{x.Name} = ref Unsafe.Add(ref Unsafe.As<byte, {x.MemberTypeFullName}>(ref Unsafe.Add(ref GetArrayDataReference(__value), __byteOffset{x.Name})), index);")}}
             return {{BuildElementNew(elementType, elementConstructor, members)}}
             {
 {{ForEachLine("                ", members.Where(x => !x.IsConstructorParameter), x => $"{x.Name} = __{x.Name},")}}
@@ -343,7 +345,7 @@ partial struct {{targetTypeName}} : global::StructureOfArraysGenerator.IMultiArr
         set
         {
             if ((uint)index >= (uint)__length) ThrowOutOfRangeException();
-{{ForEachLine("            ", members, x => $"Unsafe.Add(ref Unsafe.As<byte, {x.MemberTypeFullName}>(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(__value), __byteOffset{x.Name})), index) = value.{x.Name};")}}
+{{ForEachLine("            ", members, x => $"Unsafe.Add(ref Unsafe.As<byte, {x.MemberTypeFullName}>(ref Unsafe.Add(ref GetArrayDataReference(__value), __byteOffset{x.Name})), index) = value.{x.Name};")}}
         }
     }
 
@@ -365,6 +367,16 @@ partial struct {{targetTypeName}} : global::StructureOfArraysGenerator.IMultiArr
         {
             yield return item;
         }
+    }
+    
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    static ref T GetArrayDataReference<T>(T[] array)
+    {
+#if NET5_0_OR_GREATER
+        return ref MemoryMarshal.GetArrayDataReference(array);
+#else
+        return ref MemoryMarshal.GetReference(array.AsSpan());
+#endif
     }
 
     static void ThrowOutOfRangeException()

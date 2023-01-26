@@ -20,8 +20,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\StructureOfArraysGenerator\StructureOfArraysGenerator.csproj" />
-        <ProjectReference Include="..\..\src\StructureOfArraysGenerator\StructureOfArraysGenerator.csproj">
+        <Compile Include="../StructureOfArraysGenerator.Tests/**/*.cs" Exclude="**/obj/**;" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\StructureOfArraysGenerator.Roslyn3\StructureOfArraysGenerator.Roslyn3.csproj" />
+        <ProjectReference Include="..\..\src\StructureOfArraysGenerator.Roslyn3\StructureOfArraysGenerator.Roslyn3.csproj">
             <OutputItemType>Analyzer</OutputItemType>
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         </ProjectReference>

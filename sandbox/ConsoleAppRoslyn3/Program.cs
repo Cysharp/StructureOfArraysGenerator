@@ -1,4 +1,6 @@
 ﻿using StructureOfArraysGenerator;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 // See https://aka.ms/new-console-template for more information
 Console.WriteLine("Hello, World!");
@@ -25,3 +27,18 @@ public readonly partial struct Point3DMultiArray
 }
 
 
+
+
+public class MyClass
+{
+
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
+    static ref T GetArrayDataReference<T>(T[] array)
+    {
+#if NET5_0_OR_GREATER
+        return ref MemoryMarshal.GetArrayDataReference(array);
+#else
+        return ref MemoryMarshal.GetReference(array.AsSpan());
+#endif
+    }
+}

@@ -122,10 +122,12 @@ sandbox/SandboxConsoleApp/MemoryPackLogs/
 
 # Unity
 
-src/MemoryPack.Unity/Library/*
-src/MemoryPack.Unity/Temp/*
-src/MemoryPack.Unity/Logs/*
+src/*.Unity/Library/*
+src/*.Unity/Temp/*
+src/*.Unity/Logs/*
 
-src/MemoryPack.Unity/*.csproj
-src/MemoryPack.Unity/*.sln
-src/MemoryPack.Unity/MemoryPack.*.unitypackage
+src/*.Unity/*.csproj
+src/*.Unity/*.sln
+src/*.Unity/*.*.unitypackage
+
+src/StructureOfArraysGenerator.Unity/UserSettings/Layouts/default-2021.dwlt
