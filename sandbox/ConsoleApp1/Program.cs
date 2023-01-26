@@ -15,6 +15,40 @@ using StructureOfArraysGenerator;
 
 //MemoryPackFormatterProvider.Register(new MultiArrayFormatter<Point3DMultiArray>());
 
+// Vector3(float X, float Y, float Z)
+
+
+// calculate bytesize of MultiArray
+var byteSize = Vector3MultiArray.GetByteSize(length: 10);
+
+var rentArray = ArrayPool<byte>.Shared.Rent(byteSize);
+try
+{
+    // must need to zero clear before use in MultiArray
+    Array.Clear(rentArray, 0, byteSize);
+
+    // create ArrayPool byte[] backed MultiArray
+    var array = new Vector3MultiArray(10, rentArray);
+
+    // do something...
+}
+finally
+{
+    // return after used.
+    ArrayPool<byte>.Shared.Return(rentArray);
+}
+
+
+
+
+
+//array.X[0] = 10;
+//array[1] = new Vector3(1.1f, 2.2f, 3.3f);
+
+//foreach (var item in array)
+//{
+//    Console.WriteLine($"{item.X}, {item.Y}, {item.Z}");
+//}
 
 
 //var list = new Point3DMultiArrayList();
@@ -25,6 +59,8 @@ using StructureOfArraysGenerator;
 //list.Add(new Point3D { X = 13, Y = 23, Z = 33 });
 //list.Add(new Point3D { X = 15, Y = 25, Z = 35 });
 
+
+
 new Point3DMultiArray(8);
 
 
@@ -32,21 +68,20 @@ new Point3DMultiArray(8);
 
 //Console.WriteLine(list.Length);
 
-
-
-var array = new Point3DMultiArray(3);
-array[0] = new Point3D { X = 10, Y = 20, Z = 30 };
-array[1] = new Point3D { X = 20, Y = 40, Z = 30 };
-array[2] = new Point3D { X = 30, Y = 60, Z = 30 };
-
-
-foreach (var item in array)
+public readonly struct Point2D
 {
-    Console.WriteLine((item.X, item.Y, item.Z));
+    public readonly int X;
+    public readonly int Y;
+
+    public Point2D(int x, int y)
+    {
+        X = x;
+        Y = y;
+    }
 }
 
-
-
+[MultiArray(typeof(Point2D))]
+public readonly partial struct Point2DMultiArray { }
 
 
 public struct Point3D
@@ -71,7 +106,7 @@ public readonly partial struct Point3DMultiArray
 
 
 
-[MultiArray(typeof(Vector3))]
+[MultiArray(typeof(Vector3), includeProperty: true)]
 public readonly partial struct Vector3MultiArray
 {
 }
@@ -85,4 +120,6 @@ public readonly partial struct Vector4MultiArray
 {
 
 }
+
+
 

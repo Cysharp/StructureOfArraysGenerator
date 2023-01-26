@@ -182,8 +182,9 @@ namespace StructureOfArraysGenerator
 
                 if (x is IFieldSymbol) return true;
 
-                if (includeProperty && x is IPropertySymbol)
+                if (includeProperty && x is IPropertySymbol p)
                 {
+                    if (p.IsIndexer) return false;
                     return true;
                 }
 
