@@ -67,6 +67,13 @@ var array = new Vector3MultiArray(4);
 array.X[0] = 10;
 array[1] = new Vector3(1.1f, 2.2f, 3.3f);
 
+// multiply Y
+foreach (ref var item in v.Y)
+{
+    item *= 2;
+}
+
+// iterate Vector3
 foreach (var item in array)
 {
     Console.WriteLine($"{item.X}, {item.Y}, {item.Z}");
