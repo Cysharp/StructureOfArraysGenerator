@@ -30,6 +30,8 @@ Quick Start
 Make the `readonly partial struct` type with `[MultiArray]` attribute.
 
 ```csharp
+using StructureOfArraysGenerator;
+
 [MultiArray(typeof(Vector3))]
 public readonly partial struct Vector3MultiArray
 {
