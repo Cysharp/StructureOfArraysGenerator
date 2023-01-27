@@ -7,8 +7,13 @@ Structure of arrays source generator to make CPU Cache and SIMD friendly data st
 
 As described in Wikipedia [AoS and SoA](https://en.wikipedia.org/wiki/AoS_and_SoA), standard C# array is **array of structures(AoS)**, however the **structure of arrays(SoA)** is suitable for utilizing the CPU cache, which is faster than the main memory, and for ultra-fast parallel processing by SIMD. StructureOfArraysGenerator is inspired by [Zig language](https://ziglang.org/)'s `MultiArrayList`. See the great session [A Practical Guide to Applying Data-Oriented Design](https://vimeo.com/649009599) that talked by Andrew Kelley who is the Zig language author.
 
-StructureOfArraysGenerator actually generates not arrays, just a struct with a single `byte[]` field and `int` offsets of each fields to provide `Span<T>` view, it minimizes memory and heap usage in C#. Source Generator generates `Span<T>` property corresponding to each struct members so SoA structure can be realized with the same ease of use as a regular `T[]`.
+Here is the simple Max .Y of Vector3(float X, float Y, float Z) array calculate result.
 
+![image](https://user-images.githubusercontent.com/46207/215027253-6f94739f-b827-46ba-a395-690d1df89d46.png)
+
+MultiArray is x2 faster and SIMD version(SoA is easy to write SIMD) is x10 faster.
+
+StructureOfArraysGenerator actually generates not arrays, just a struct with a single `byte[]` field and `int` offsets of each fields to provide `Span<T>` view, it minimizes memory and heap usage in C#. Source Generator generates `Span<T>` property corresponding to each struct members so SoA structure can be realized with the same ease of use as a regular `T[]`.
 
 Installation
 ---

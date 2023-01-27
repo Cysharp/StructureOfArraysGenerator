@@ -6,12 +6,20 @@ using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
 using System.Runtime.Serialization.DataContracts;
 using System.Security.Cryptography.X509Certificates;
 using MemoryPack;
 using StructureOfArraysGenerator;
 
 
+
+//Avx2.LoadVector256(
+
+
+
+    
 
 //MemoryPackFormatterProvider.Register(new MultiArrayFormatter<Point3DMultiArray>());
 
