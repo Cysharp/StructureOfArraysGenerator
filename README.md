@@ -15,6 +15,8 @@ MultiArray is x2 faster and SIMD version(SoA is easy to write SIMD) is x10 faste
 
 StructureOfArraysGenerator actually generates not arrays, just a struct with a single `byte[]` field and `int` offsets of each fields to provide `Span<T>` view, it minimizes memory and heap usage in C#. Source Generator generates `Span<T>` property corresponding to each struct members so SoA structure can be realized with the same ease of use as a regular `T[]`.
 
+If you want to do aggregate operations to `Span<T>`, you can use [Cysharp/SimdLinq](https://github.com/Cysharp/SimdLinq/) that easy to calculate faster SIMD way.
+
 Installation
 ---
 This library is distributed via NuGet.
