@@ -39,6 +39,32 @@ public class MultiListTest
         Assert.Throws<ArgumentOutOfRangeException>(() => _ = list[2]);
     }
 
+    [Fact]
+    public void CopyTo()
+    {
+        var list = new Vector3IntMultiArrayList(0);
+        list.Add(new Vector3Int { ABC = 1, DEF = 22, GHI = 333 });
+        list.Add(new Vector3Int { ABC = 4, DEF = 55, GHI = 666 });
+
+        var dest = new Vector3IntMultiArray(2);
+        list.CopyTo(dest);
+
+        dest[0].ABC.Should().Be(1);
+        dest[1].ABC.Should().Be(4);
+    }
+
+    [Fact]
+    public void ToArray()
+    {
+        var list = new Vector3IntMultiArrayList(0);
+        list.Add(new Vector3Int { ABC = 1, DEF = 22, GHI = 333 });
+        list.Add(new Vector3Int { ABC = 4, DEF = 55, GHI = 666 });
+
+        var array = list.ToArray();
+        array.Length.Should().Be(2);
+        array[0].ABC.Should().Be(1);
+        array[1].ABC.Should().Be(4);
+    }
 }
 
 

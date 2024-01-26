@@ -369,7 +369,7 @@ partial struct {{targetTypeName}} : global::StructureOfArraysGenerator.IMultiArr
             yield return item;
         }
     }
-    
+
     [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]
     static ref T GetArrayDataReference<T>(T[] array)
     {
@@ -493,7 +493,7 @@ partial struct {{targetTypeName}} : global::StructureOfArraysGenerator.IMultiArr
 
     public void CopyTo({{multiArrayTypeFullName}} array)
     {
-{{ForEachLine("        ", members, x => $"this.__array.{x.Name}.CopyTo(array.{x.Name});")}}    
+{{ForEachLine("        ", members, x => $"this.__array.{x.Name}.Slice(0, __length).CopyTo(array.{x.Name});")}}
     }
 
     public {{multiArrayTypeFullName}} ToArray()

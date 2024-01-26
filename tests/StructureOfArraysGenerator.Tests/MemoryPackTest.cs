@@ -30,7 +30,6 @@ public class MemoryPackTest
         four2.AsEnumerable().Select(x => x.X).ToArray().Should().Equal(10, 20, 30, 40);
         four2.AsEnumerable().Select(x => x.Y).ToArray().Should().Equal(false, true, true, false);
         four2.AsEnumerable().Select(x => x.Z).ToArray().Should().Equal(324.4, 20.4, 44.99, 424.12);
-
     }
 }
 
