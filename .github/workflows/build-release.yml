@@ -16,7 +16,8 @@ jobs:
   update-packagejson:
     uses: Cysharp/Actions/.github/workflows/update-packagejson.yaml@main
     with:
-      file-path: ./src/StructureOfArraysGenerator.Unity/Assets/Plugins/StructureOfArraysGenerator/package.json
+      file-path: |
+        ./src/StructureOfArraysGenerator.Unity/Assets/Plugins/StructureOfArraysGenerator/package.json
       tag: ${{ inputs.tag }}
       dry-run: ${{ inputs.dry-run }}
       push-tag: false
@@ -87,7 +88,6 @@ jobs:
       push-tag: true
       nuget-push: true
       unitypackage-upload: true
-      unitypackage-name: StructureOfArraysGenerator.${{ inputs.tag }}.unitypackage
       unitypackage-path: ./StructureOfArraysGenerator.${{ inputs.tag }}.unitypackage/StructureOfArraysGenerator.${{ inputs.tag }}.unitypackage
     secrets: inherit
 
