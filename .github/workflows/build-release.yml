@@ -87,12 +87,12 @@ jobs:
       tag: ${{ inputs.tag }}
       push-tag: true
       nuget-push: true
-      unitypackage-upload: true
-      unitypackage-path: ./StructureOfArraysGenerator.${{ inputs.tag }}.unitypackage/StructureOfArraysGenerator.${{ inputs.tag }}.unitypackage
+      release-upload: true
+      release-asset-path: ./StructureOfArraysGenerator.${{ inputs.tag }}.unitypackage/StructureOfArraysGenerator.${{ inputs.tag }}.unitypackage
     secrets: inherit
 
   cleanup:
-    if: needs.update-packagejson.outputs.is-branch-created == 'true'
+    if: ${{ needs.update-packagejson.outputs.is-branch-created == 'true' }}
     needs: [update-packagejson, create-release]
     uses: Cysharp/Actions/.github/workflows/clean-packagejson-branch.yaml@main
     with:
