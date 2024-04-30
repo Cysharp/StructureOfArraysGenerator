@@ -56,7 +56,8 @@ jobs:
           directory: src/StructureOfArraysGenerator.Unity
 
       # Store artifacts.
-      - uses: actions/upload-artifact@v3
+      - uses: Cysharp/Actions/.github/actions/upload-artifact@main
         with:
           name: StructureOfArraysGenerator.${{ matrix.unity }}.unitypackage
           path: ./src/StructureOfArraysGenerator.Unity/*.unitypackage
+          retention-days: 1
