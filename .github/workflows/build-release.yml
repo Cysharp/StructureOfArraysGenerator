@@ -40,6 +40,7 @@ jobs:
         with:
           name: nuget
           path: ./publish
+          retention-days: 1
 
   build-unity:
     needs: [update-packagejson]
@@ -87,6 +88,7 @@ jobs:
           name: StructureOfArraysGenerator.${{ inputs.tag }}.unitypackage
           path: ./src/StructureOfArraysGenerator.Unity/StructureOfArraysGenerator.${{ inputs.tag }}.unitypackage
           if-no-files-found: error
+          retention-days: 1
 
   # release
   create-release:

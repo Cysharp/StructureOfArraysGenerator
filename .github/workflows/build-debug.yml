@@ -60,3 +60,4 @@ jobs:
         with:
           name: StructureOfArraysGenerator.${{ matrix.unity }}.unitypackage
           path: ./src/StructureOfArraysGenerator.Unity/*.unitypackage
+          retention-days: 1
