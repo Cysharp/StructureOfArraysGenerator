@@ -11,7 +11,9 @@ on:
 
 jobs:
   build-dotnet:
-    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: Cysharp/Actions/.github/actions/checkout@main
@@ -24,7 +26,9 @@ jobs:
     strategy:
       matrix:
         unity: ["2021.3.41f1"]
-    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Load secrets
