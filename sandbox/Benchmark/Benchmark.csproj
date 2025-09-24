@@ -7,8 +7,8 @@
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
         <Nullable>enable</Nullable>
         <TieredPGO>true</TieredPGO>
-        <IsPackable>false</IsPackable>
     </PropertyGroup>
+
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
         <WarningsAsErrors>$(WarningsAsErrors);NU1605;</WarningsAsErrors>
         <NoWarn>$(NoWarn);CS1591;CS8604;CS8032;CS8002;CS8600</NoWarn>
