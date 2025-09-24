@@ -14,9 +14,11 @@
 		<DevelopmentDependency>true</DevelopmentDependency>
 		<IncludeSymbols>false</IncludeSymbols>
 		<SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+
+		<!-- NuGet packaging including in StructureOfArraysGenerator -->
+		<IsPackable>false</IsPackable>
 		<PackageTags>codegenerator</PackageTags>
 		<Description>Structure of arrays code generator.</Description>
-		<IsPackable>false</IsPackable>
 	</PropertyGroup>
 
 	<ItemGroup>
