@@ -23,7 +23,6 @@ jobs:
         ./src/StructureOfArraysGenerator.Unity/Assets/Plugins/StructureOfArraysGenerator/package.json
       tag: ${{ inputs.tag }}
       dry-run: ${{ inputs.dry-run }}
-      push-tag: false
 
   build-dotnet:
     needs: [update-packagejson]
